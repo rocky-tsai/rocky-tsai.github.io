@@ -106,23 +106,30 @@
 
 
 
-  <meta name="description" content="Stay Hungry,Stay Foolish">
-<meta property="og:type" content="website">
-<meta property="og:title" content="RockyTsai">
-<meta property="og:url" content="http://yoursite.com/index.html">
+  <meta name="description" content="Storm集群结构  Nimbus 和Supervisors 之间所有的协调工作是通过 一个Zookeeper 集群。 Nimbus进程和 Supervisors 进程是无法直接连接和无状态的; 所有的状态维持在Zookeeper中或保存在本地磁盘上。 这意味着你可以 kill -9 Nimbus 或Supervisors 进程，而不需要做备份。 这种设计导致storm集群具有令人难以置信的稳定性">
+<meta name="keywords" content="大数据-storm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="storm原理和架构">
+<meta property="og:url" content="http://yoursite.com/post/491d927c.html">
 <meta property="og:site_name" content="RockyTsai">
-<meta property="og:description" content="Stay Hungry,Stay Foolish">
+<meta property="og:description" content="Storm集群结构  Nimbus 和Supervisors 之间所有的协调工作是通过 一个Zookeeper 集群。 Nimbus进程和 Supervisors 进程是无法直接连接和无状态的; 所有的状态维持在Zookeeper中或保存在本地磁盘上。 这意味着你可以 kill -9 Nimbus 或Supervisors 进程，而不需要做备份。 这种设计导致storm集群具有令人难以置信的稳定性">
 <meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/post/491d927c/storm04.png">
+<meta property="og:image" content="http://yoursite.com/post/491d927c/storm05.png">
+<meta property="og:image" content="http://yoursite.com/post/491d927c/storm06.png">
+<meta property="og:image" content="http://yoursite.com/post/491d927c/storm02.png">
+<meta property="og:updated_time" content="2018-09-20T15:12:31.117Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="RockyTsai">
-<meta name="twitter:description" content="Stay Hungry,Stay Foolish">
+<meta name="twitter:title" content="storm原理和架构">
+<meta name="twitter:description" content="Storm集群结构  Nimbus 和Supervisors 之间所有的协调工作是通过 一个Zookeeper 集群。 Nimbus进程和 Supervisors 进程是无法直接连接和无状态的; 所有的状态维持在Zookeeper中或保存在本地磁盘上。 这意味着你可以 kill -9 Nimbus 或Supervisors 进程，而不需要做备份。 这种设计导致storm集群具有令人难以置信的稳定性">
+<meta name="twitter:image" content="http://yoursite.com/post/491d927c/storm04.png">
 
 
 
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/post/491d927c.html"/>
 
 
 
@@ -132,7 +139,7 @@
   };
 </script>
 
-  <title>RockyTsai</title>
+  <title>storm原理和架构 | RockyTsai</title>
   
 
 
@@ -179,8 +186,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -221,7 +227,7 @@
         
         
           
-          <li class="menu-item menu-item-home menu-item-active">
+          <li class="menu-item menu-item-home">
     <a href="/" rel="section">
       <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
   </li>
@@ -320,9 +326,9 @@
           
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -354,11 +360,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/post/491d927c.html" itemprop="url">
-                  storm原理和架构
-                </a>
+          <h1 class="post-title" itemprop="name headline">storm原理和架构
               
             
           </h1>
@@ -451,23 +453,29 @@
       
 
       
-        
-          
-          Storm集群结构
+        <h1 id="Storm集群结构"><a href="#Storm集群结构" class="headerlink" title="Storm集群结构"></a>Storm集群结构</h1>
+<ol>
+<li>Nimbus 和Supervisors 之间所有的协调工作是通过 一个Zookeeper 集群。</li>
+<li>Nimbus进程和 Supervisors 进程是无法直接连接和无状态的; 所有的状态维持在Zookeeper中或保存在本地磁盘上。</li>
+<li>这意味着你可以 kill -9 Nimbus 或Supervisors 进程，而不需要做备份。</li>
+<li>这种设计导致storm集群具有令人难以置信的稳定性，即无耦合。</li>
+</ol>
+<h1 id="storm-的工作原理："><a href="#storm-的工作原理：" class="headerlink" title="storm 的工作原理："></a>storm 的工作原理：</h1><img src="/post/491d927c/storm04.png" title="topology spouts bolts">
+<ol>
+<li>Nimbus 负责在集群分发的代码，topo只能在nimbus机器上提交，将任务分配给其他机器，和故障监测。</li>
+<li>Supervisor，监听分配给它的节点，根据Nimbus的委派在必要时启动和关闭工作进程。 每个工作进程执行topology的一个子集。一个运行中的topology由很多运行在很多机器上的工作进程组成。</li>
+<li>在Storm中有对于流stream的抽象，流是一个不间断的***的连续tuple，注意Storm在建模事件流时，把流中的事件抽象为tuple即元组<img src="/post/491d927c/storm05.png" title="topology spouts bolts"></li>
+<li>Storm认为每个stream都有一个源，也就是原始元组的源头，叫做Spout（管口）</li>
+<li>处理stream内的tuple，抽象为Bolt，bolt可以消费任意数量的输入流，只要将流方向导向该bolt，同时它也可以发送新的流给其他bolt使用，这样一来，只要打开特定的spout再将spout中流出的tuple导向特定的bolt，又bolt对导入的流做处理后再导向其他bolt或者目的地。</li>
+<li>可以认为spout就是水龙头，并且每个水龙头里流出的水是不同的，我们想拿到哪种水就拧开哪个水龙头，然后使用管道将水龙头的水导向到一个水处理器（bolt），水处理器处理后再使用管道导向另一个处理器或者存入容器中。<img src="/post/491d927c/storm06.png" title="topology spouts bolts"> 
+<h1 id="Topology-作业"><a href="#Topology-作业" class="headerlink" title="Topology 作业"></a>Topology 作业</h1><img src="/post/491d927c/storm02.png" title="topology spouts bolts">
+Storm将流中元素抽象为tuple，一个tuple就是一个值列表valuelist，list中的每个value都有一个name，并且该value可以是任意可序列化的类型。拓扑每个节点都要说明它所发射出的元组的字段的name，其他节点只需要订阅该name就可以接收处理。</li>
+</ol>
+<h1 id="storm-中的角色与概念"><a href="#storm-中的角色与概念" class="headerlink" title="storm 中的角色与概念"></a>storm 中的角色与概念</h1><h2 id="Streams：消息流"><a href="#Streams：消息流" class="headerlink" title="Streams：消息流"></a>Streams：消息流</h2><p>消息流是一个没有边界的tuple序列，而这些tuples会被以一种分布式的方式并行创建和处理。 每个tuple可以包含多列，字段类型可以是： integer, long, short, byte, string, double, float, boolean和byte array。 你还可以自定义类型 — 只要你实现对应的序列化器。</p>
+<h2 id="Spouts：消息源"><a href="#Spouts：消息源" class="headerlink" title="Spouts：消息源"></a>Spouts：消息源</h2><p>Spouts是topology消息生产者。Spout从一个外部源(消息队列)读取数据向topology发出tuple。 消息源Spouts可以是可靠的也可以是不可靠的。一个可靠的消息源可以重新发射一个处理失败的tuple， 一个不可靠的消息源Spouts不会。</p>
+<p>Spout类的方法nextTuple不断发射tuple到topology，storm在检测到一个tuple被整个topology成功处理的时候调用ack, 否则调用fail。<br>storm只对可靠的spout调用ack和fail。</p>
+<h2 id="Bolts：消息处理者"><a href="#Bolts：消息处理者" class="headerlink" title="Bolts：消息处理者"></a>Bolts：消息处理者</h2><p>消息处理逻辑被封装在bolts里面，Bolts可以做很多事情： 过滤， 聚合， 查询数据库等。<br>Bolts可以简单的做消息流的传递。复杂的消息流处理往往需要很多步骤， 从而也就需要经过很多Bolts。第一级Bolt的输出可以作为下一级Bolt的输入。而Spout不能有一级。<br>Bolts的主要方法是execute（死循环）连续处理传入的tuple，成功处理完每一个tuple调用OutputCollector的ack方法，以通知storm这个tuple被处理完成了。当处理失败时，可以调fail方法通知Spout端可以重新发送该tuple。<br>流程是： Bolts处理一个输入tuple, 然后调用ack通知storm自己已经处理过这个tuple了。storm提供了一个IBasicBolt会自动调用ack。<br>Bolts使用OutputCollector来发射tuple到下一级Blot。</p>
 
-Nimbus 和Supervisors 之间所有的协调工作是通过 一个Zookeeper 集群。
-Nimbus进程和 Supervisors 进程是无法直接连接和无状态的; 所有的状态维持在Zookeeper中或保存在本地磁盘上。
-这意味着你可以 kill -9 Nimbus 或Supervisors 进程，而不需要做备份。
-这种设计导致storm集群具有令人难以置信的稳定性
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/post/491d927c.html#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
       
     </div>
 
@@ -479,207 +487,137 @@ Nimbus进程和 Supervisors 进程是无法直接连接和无状态的; 所有�
 
     <div>
         
+        <div>
+
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+
+</div>
+
+
+        
     </div>
 
     
 
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Donate comment here</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="rocky WeChat Pay"/>
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="rocky Alipay"/>
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
     
 
     
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/post/1d00501c.html">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="rocky">
-      <meta itemprop="description" content="Stay Hungry,Stay Foolish">
-      <meta itemprop="image" content="/images/rocky.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="RockyTsai">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/post/1d00501c.html" itemprop="url">
-                  storm基础概念
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2018-09-20 21:52:31 / Modified: 23:12:24" itemprop="dateCreated datePublished" datetime="2018-09-20T21:52:31+08:00">2018-09-20</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/storm/" itemprop="url" rel="index"><span itemprop="name">storm</span></a></span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/大数据-storm/" rel="tag"># 大数据-storm</a>
           
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/post/1d00501c.html#comments" itemprop="discussionUrl">
-                
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="post/1d00501c.html" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
+      
+        <div class="post-widgets">
+        
+
+        
+
         
           
-          strom 经典图谱：
-strom基础1.Topologies2.Streams3.Spouts4.Bolts5.Stream groupings6.Reliability7.Tasks8.Workers9.Configuration
+          <div class="social_share">
+            
+               <div>
+                 
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
 
-1、Topologies一个topology是spouts和bolts组成的图， 通过stream groupings将图中的spouts和bolts连接起来，如
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/post/1d00501c.html#more" rel="contents">
-              Read more &raquo;
-            </a>
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+               </div>
+            
+            
           </div>
-          <!--/noindex-->
         
+        </div>
       
-    </div>
-
-    
-
-    
-    
-    
-
-    <div>
-        
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
       
 
       
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/post/1d00501c.html" rel="next" title="storm基础概念">
+                <i class="fa fa-chevron-left"></i> storm基础概念
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
 
       
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -689,14 +627,25 @@ strom基础1.Topologies2.Streams3.Spouts4.Bolts5.Stream groupings6.Reliability7.
   </article>
 
 
-    
-  </section>
-
-  
+  </div>
 
 
           </div>
           
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
 
         </div>
         
@@ -717,8 +666,17 @@ strom基础1.Topologies2.Streams3.Spouts4.Bolts5.Stream groupings6.Reliability7.
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -812,6 +770,22 @@ strom基础1.Topologies2.Streams3.Spouts4.Bolts5.Stream groupings6.Reliability7.
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Storm集群结构"><span class="nav-number">1.</span> <span class="nav-text">Storm集群结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#storm-的工作原理："><span class="nav-number">2.</span> <span class="nav-text">storm 的工作原理：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Topology-作业"><span class="nav-number">3.</span> <span class="nav-text">Topology 作业</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#storm-中的角色与概念"><span class="nav-number">4.</span> <span class="nav-text">storm 中的角色与概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Streams：消息流"><span class="nav-number">4.1.</span> <span class="nav-text">Streams：消息流</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spouts：消息源"><span class="nav-number">4.2.</span> <span class="nav-text">Spouts：消息源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bolts：消息处理者"><span class="nav-number">4.3.</span> <span class="nav-text">Bolts：消息处理者</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -945,6 +919,10 @@ strom基础1.Topologies2.Streams3.Spouts4.Bolts5.Stream groupings6.Reliability7.
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
 
   
 
@@ -959,6 +937,23 @@ strom基础1.Topologies2.Streams3.Spouts4.Bolts5.Stream groupings6.Reliability7.
     <script id="dsq-count-scr" src="https://.disqus.com/count.js" async></script>
   
 
+  
+    <script type="text/javascript">
+      var disqus_config = function () {
+        this.page.url = 'http://yoursite.com/post/491d927c.html';
+        this.page.identifier = 'post/491d927c.html';
+        this.page.title = 'storm原理和架构';
+        };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        loadComments();
+      
+    </script>
   
 
 
